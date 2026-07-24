@@ -61,7 +61,6 @@ pub unsafe fn get_proxied_func(
 
 #[macro_export]
 macro_rules! proxy_function {
-    // Basic proxy function with default fallback
     ($dll:literal, $name:ident, ($($param:ident: $param_type:ty),*), $ret_type:ty, $default:expr) => {
         #[unsafe(no_mangle)]
         pub unsafe extern "system" fn $name($($param: $param_type),*) -> $ret_type {
@@ -76,7 +75,6 @@ macro_rules! proxy_function {
         }
     };
     
-    // Proxy function with custom fallback function call
     ($dll:literal, $name:ident, ($($param:ident: $param_type:ty),*), $ret_type:ty, fallback: $fallback_fn:ident($($fallback_arg:ident),*)) => {
         #[unsafe(no_mangle)]
         pub unsafe extern "system" fn $name($($param: $param_type),*) -> $ret_type {
