@@ -1,7 +1,5 @@
 use std::{path::PathBuf, sync::LazyLock};
-
 use anyhow::{anyhow, Result};
-
 use crate::{logging::message_box, DLL_PATH};
 
 pub const CONFIG: LazyLock<ColdLoaderConfig> = LazyLock::new(|| {
@@ -54,14 +52,12 @@ pub fn read_config() -> Result<ColdLoaderConfig> {
         .and_then(|s| s.get("appid"))
         .and_then(|s| s.parse::<u32>().ok())
         .or_else(|| {
-            // read the app_id from steam_settings/steam_appid.txt
             let appid_path = steamclient_path
                 .parent()?
                 .join("steam_settings")
                 .join("steam_appid.txt");
 
             let appid_content = std::fs::read_to_string(appid_path).ok()?;
-
             appid_content.trim().parse::<u32>().ok()
         })
         .ok_or_else(|| anyhow!("appid not found in coldloader.ini or steam_appid.txt"))?;
