@@ -1,30 +1,26 @@
 use {std::{ffi::CString, str::FromStr as _}, winapi::um::winuser::MessageBoxA};
+use std::{panic, sync::Once};
+use log::LevelFilter;
+use log4rs::{append::file::FileAppender, config::{Appender, Root}, encode::pattern::PatternEncoder, Config as Log4rsConfig};
 
-#[cfg(debug_assertions)]
-use {
-    std::{panic, sync::Once},
-    log::LevelFilter,
-    log4rs::{append::file::FileAppender, config::{Appender, Root}, encode::pattern::PatternEncoder, Config},
-};
-
-#[cfg(debug_assertions)]
 static LOGGER: Once = Once::new();
 
-#[cfg(debug_assertions)]
-pub fn init_logger() {
+pub fn init_logger(is_proxy: bool) {
     LOGGER.call_once(|| {
         let timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_secs();
-        let log_file_path = format!("coldloader_{}.log", timestamp);
+
+        let prefix = if is_proxy { "coldloader_proxy" } else { "coldloader" };
+        let log_file_path = format!("{}_{}.log", prefix, timestamp);
 
         let logfile = FileAppender::builder()
             .encoder(Box::new(PatternEncoder::new("[{d(%Y-%m-%dT%H:%M:%S%.3f)}] [{l}]: {m}{n}")))
             .build(log_file_path)
             .unwrap();
 
-        let config = Config::builder()
+        let config = Log4rsConfig::builder()
             .appender(Appender::builder().build("logfile", Box::new(logfile)))
             .build(
                 Root::builder()
@@ -34,12 +30,12 @@ pub fn init_logger() {
             .unwrap();
 
         let _handle = log4rs::init_config(config).unwrap();
-        
-        log::info!("Logger initialized");
+
+        let mode = if is_proxy { "PROXY" } else { "STANDALONE" };
+        log::info!("Logger initialized in {} mode", mode);
     });
 }
 
-#[cfg(debug_assertions)]
 pub fn setup_panic_handler() {
     panic::set_hook(Box::new(|panic_info| {
         let message = if let Some(s) = panic_info.payload().downcast_ref::<&str>() {
@@ -66,12 +62,6 @@ pub fn setup_panic_handler() {
         log::error!("Panic occurred at {}: {}", location, message);
     }));
 }
-
-#[cfg(not(debug_assertions))]
-pub fn init_logger() { }
-
-#[cfg(not(debug_assertions))]
-pub fn setup_panic_handler() { }
 
 pub fn message_box(message: &str) {
     let message = CString::from_str(message).unwrap();
