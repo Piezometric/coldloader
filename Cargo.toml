@@ -13,7 +13,7 @@ anyhow = "1.0.102"
 log = { version = "0.4.29", features = ["release_max_level_off"] }
 log4rs = "1.4.0"
 rust-ini = "0.21.3"
-winapi = { version = "0.3.9", features = ["minwindef", "libloaderapi", "processthreadsapi", "winuser"] }
+winapi = { version = "0.3.9", features = ["minwindef", "libloaderapi", "processthreadsapi", "winuser", "sysinfoapi", "ntdef", "basetsd", "winnt"] }
 winreg = "0.56.0"
 
 [profile.release]
