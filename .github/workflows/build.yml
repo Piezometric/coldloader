@@ -13,14 +13,6 @@ env:
 jobs:
   build:
     runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-pc-windows-msvc
-            arch: x64
-          - target: i686-pc-windows-msvc
-            arch: x86
 
     steps:
       - name: Checkout repository
@@ -29,26 +21,44 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@nightly
         with:
-          targets: ${{ matrix.target }}
+          targets: x86_64-pc-windows-msvc, i686-pc-windows-msvc
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
 
       - name: Build DLL (Debug)
-        run: cargo build --target ${{ matrix.target }}
+        run: |
+          cargo build --target x86_64-pc-windows-msvc
+          cargo build --target i686-pc-windows-msvc
 
       - name: Build DLL (Release)
-        run: cargo build --release --target ${{ matrix.target }}
+        run: |
+          cargo build --release --target x86_64-pc-windows-msvc
+          cargo build --release --target i686-pc-windows-msvc
+
+      - name: Prepare Files
+        run: |
+          mkdir debug_zip\x64
+          mkdir debug_zip\x86
+          copy target\x86_64-pc-windows-msvc\debug\coldloader.dll debug_zip\x64\
+          copy target\i686-pc-windows-msvc\debug\coldloader.dll debug_zip\x86\
+          copy coldloader.EXAMPLE.ini debug_zip\
+
+          mkdir release_zip\x64
+          mkdir release_zip\x86
+          copy target\x86_64-pc-windows-msvc\release\coldloader.dll release_zip\x64\
+          copy target\i686-pc-windows-msvc\release\coldloader.dll release_zip\x86\
+          copy coldloader.EXAMPLE.ini release_zip\
 
       - name: Package Debug
-        run: Compress-Archive -Path target/${{ matrix.target }}/debug/coldloader.dll, coldloader.EXAMPLE.ini -DestinationPath coldloader-debug-${{ matrix.arch }}.zip
+        run: Compress-Archive -Path debug_zip\* -DestinationPath coldloader-debug.zip
 
       - name: Package Release
-        run: Compress-Archive -Path target/${{ matrix.target }}/release/coldloader.dll, coldloader.EXAMPLE.ini -DestinationPath coldloader-release-${{ matrix.arch }}.zip
+        run: Compress-Archive -Path release_zip\* -DestinationPath coldloader-release.zip
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            coldloader-debug-${{ matrix.arch }}.zip
-            coldloader-release-${{ matrix.arch }}.zip
+            coldloader-debug.zip
+            coldloader-release.zip
