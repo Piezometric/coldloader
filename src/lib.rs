@@ -52,10 +52,10 @@ unsafe extern "system" fn DllMain(
         DLL_PROCESS_ATTACH => {
             let (dll_path, is_proxy) = {
                 let mut buffer = [0u16; 1024];
-                let len = GetModuleFileNameW(module, buffer.as_mut_ptr(), buffer.len() as u32);
+                let len = unsafe { GetModuleFileNameW(module, buffer.as_mut_ptr(), buffer.len() as u32) };
                 
                 if len == 0 {
-                    let exe_len = GetModuleFileNameW(std::ptr::null_mut(), buffer.as_mut_ptr(), buffer.len() as u32);
+                    let exe_len = unsafe { GetModuleFileNameW(std::ptr::null_mut(), buffer.as_mut_ptr(), buffer.len() as u32) };
                     let path_str = OsString::from_wide(&buffer[..exe_len as usize]).into_string().unwrap_or_default();
                     let path = Path::new(&path_str);
                     (path.parent().unwrap_or_else(|| Path::new("")).to_owned(), false)
