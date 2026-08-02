@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@main
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@nightly
@@ -57,7 +57,7 @@ jobs:
         run: Compress-Archive -Path release_zip\* -DestinationPath coldloader-release.zip
 
       - name: Upload to Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@master
         with:
           files: |
             coldloader-debug.zip
