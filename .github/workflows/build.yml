@@ -1,6 +1,11 @@
 name: Build DLL
 
-on: [push, pull_request]
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
 
 env:
   CARGO_TERM_COLOR: always
@@ -19,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@nightly
@@ -29,20 +34,21 @@ jobs:
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
 
-      - name: Build DLL (Debug, ${{ matrix.arch }})
+      - name: Build DLL (Debug)
         run: cargo build --target ${{ matrix.target }}
 
-      - name: Build DLL (Release, ${{ matrix.arch }})
+      - name: Build DLL (Release)
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Upload Debug DLL (${{ matrix.arch }})
-        uses: actions/upload-artifact@v7
-        with:
-          name: coldloader-debug-${{ matrix.arch }}
-          path: target/${{ matrix.target }}/debug/*.dll
+      - name: Package Debug
+        run: Compress-Archive -Path target/${{ matrix.target }}/debug/coldloader.dll, coldloader.EXAMPLE.ini -DestinationPath coldloader-debug-${{ matrix.arch }}.zip
 
-      - name: Upload Release DLL (${{ matrix.arch }})
-        uses: actions/upload-artifact@v7
+      - name: Package Release
+        run: Compress-Archive -Path target/${{ matrix.target }}/release/coldloader.dll, coldloader.EXAMPLE.ini -DestinationPath coldloader-release-${{ matrix.arch }}.zip
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: coldloader-release-${{ matrix.arch }}
-          path: target/${{ matrix.target }}/release/*.dll
+          files: |
+            coldloader-debug-${{ matrix.arch }}.zip
+            coldloader-release-${{ matrix.arch }}.zip
