@@ -80,6 +80,8 @@ unsafe extern "system" fn DllMain(
             logging::init_logger(is_proxy);
             logging::setup_panic_handler();
 
+            let _ = ini::CONFIG.app_id;
+
             std::thread::spawn(|| {
                 if let Err(e) = coldloader::initialize() {
                     log::error!("Failed to initialize: {}", e);
