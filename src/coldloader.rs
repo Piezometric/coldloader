@@ -1,9 +1,8 @@
-use std::{ffi::OsString, os::windows::ffi::OsStringExt, path::{Path, PathBuf}, sync::{LazyLock, OnceLock}};
+use std::{path::PathBuf, sync::LazyLock};
 use anyhow::{anyhow, Result};
-use winapi::{shared::minwindef::{BOOL, DWORD, HMODULE, LPVOID, TRUE}, um::{libloaderapi::{GetModuleFileNameW, LoadLibraryW}, processthreadsapi::GetCurrentProcessId, winnt::{DLL_PROCESS_ATTACH, DLL_PROCESS_DETACH}}};
+use winapi::um::{libloaderapi::LoadLibraryW, processthreadsapi::GetCurrentProcessId};
 
 use crate::ini::CONFIG;
-use crate::logging::message_box;
 
 static STEAM_UNIVERSE: &str = "public";
 static PROCESS_ID: LazyLock<u32> = LazyLock::new(|| unsafe {
