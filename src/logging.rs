@@ -1,9 +1,6 @@
 use {std::{ffi::CString, str::FromStr as _}, winapi::um::winuser::MessageBoxA};
 
 #[cfg(debug_assertions)]
-use crate::ini::CONFIG;
-
-#[cfg(debug_assertions)]
 use {
     std::{panic, sync::Once},
     log::LevelFilter,
